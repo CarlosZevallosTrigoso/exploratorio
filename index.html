@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ensayos</title>
+  <meta name="description" content="Repositorio de ensayos como fuentes de consulta.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap">
+  <link rel="stylesheet" href="css/estilo.css">
+</head>
+<body class="pagina-indice">
+  <header class="cabecera-indice">
+    <h1 class="titulo-sitio">Ensayos</h1>
+    <p class="subtitulo-sitio">Fuentes de consulta</p>
+    <nav class="conmutador" aria-label="Ordenar el índice">
+      <button type="button" class="conmutador-boton" data-vista="fecha">Por fecha</button>
+      <button type="button" class="conmutador-boton" data-vista="tema">Por tema</button>
+    </nav>
+  </header>
+
+  <main id="indice" class="indice" aria-live="polite"></main>
+
+  <script type="module">
+    import { limpiarManifest, agruparPorAnio, agruparPorTema, formatearFecha }
+      from './js/logica.js';
+
+    const cont = document.getElementById('indice');
+    const botones = [...document.querySelectorAll('.conmutador-boton')];
+    let ensayos = [];
+
+    const VISTAS = ['fecha', 'tema'];
+    const vistaActual = () => {
+      const h = location.hash.replace('#', '');
+      return VISTAS.includes(h) ? h : 'fecha';
+    };
+
+    function entrada(e) {
+      const art = document.createElement('article');
+      art.className = 'entrada';
+
+      const a = document.createElement('a');
+      a.className = 'entrada-titulo';
+      a.href = `ensayo.html?id=${encodeURIComponent(e.slug)}`;
+      a.textContent = e.titulo;
+      art.appendChild(a);
+
+      if (e.fecha) {
+        const meta = document.createElement('div');
+        meta.className = 'entrada-meta';
+        const t = document.createElement('time');
+        t.dateTime = e.fecha;
+        t.textContent = formatearFecha(e.fecha);
+        meta.appendChild(t);
+        art.appendChild(meta);
+      }
+
+      if (e.abstract) {
+        const p = document.createElement('p');
+        p.className = 'entrada-abstract';
+        p.textContent = e.abstract;
+        art.appendChild(p);
+      }
+      return art;
+    }
+
+    function estado(texto) {
+      const d = document.createElement('p');
+      d.className = 'estado';
+      d.textContent = texto;
+      return d;
+    }
+
+    function render() {
+      const vista = vistaActual();
+      botones.forEach(b =>
+        b.setAttribute('aria-current', String(b.dataset.vista === vista)));
+      cont.innerHTML = '';
+
+      if (!ensayos.length) {
+        cont.appendChild(estado('Todavía no hay ensayos publicados.'));
+        return;
+      }
+
+      const grupos = vista === 'tema'
+        ? agruparPorTema(ensayos)
+        : agruparPorAnio(ensayos);
+
+      for (const g of grupos) {
+        const sec = document.createElement('section');
+        sec.className = 'grupo';
+        const h = document.createElement('h2');
+        h.className = 'grupo-titulo';
+        h.textContent = vista === 'tema' ? g.tema : g.anio;
+        sec.appendChild(h);
+        for (const e of g.items) sec.appendChild(entrada(e));
+        cont.appendChild(sec);
+      }
+    }
+
+    async function cargar() {
+      try {
+        const r = await fetch('manifest.json', { cache: 'no-cache' });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        ensayos = limpiarManifest(await r.json());
+        render();
+      } catch (err) {
+        console.error(err);
+        cont.innerHTML = '';
+        cont.appendChild(estado(
+          'No se pudo cargar el índice. Si abriste el archivo con doble clic, ' +
+          'sírvelo desde un servidor local (ver LEEME.md).'));
+      }
+    }
+
+    botones.forEach(b =>
+      b.addEventListener('click', () => { location.hash = b.dataset.vista; }));
+    window.addEventListener('hashchange', render);
+    cargar();
+  </script>
+</body>
+</html>

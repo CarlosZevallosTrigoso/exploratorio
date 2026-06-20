@@ -1,0 +1,431 @@
+/* =========================================================================
+   estilo.css — Repositorio de ensayos
+   Único lugar donde vive el diseño: editar aquí cambia índice y lector.
+   La lectura del ensayo es el centro; la "mueblería" (barra, TOC, fechas)
+   se mantiene callada y en sans para no competir con la prosa en Lora.
+   ========================================================================= */
+
+/* ---- Variables calibrables -------------------------------------------- */
+:root {
+  /* Color. "Negro" se representa como #141414: a página completa, el negro
+     puro sobre blanco puro deslumbra en lecturas largas. Cambiar a #000 si
+     se prefiere literal. */
+  --papel:        #ffffff;
+  --tinta:        #141414;   /* texto principal */
+  --tinta-tenue:  #6b6b6b;   /* fechas, abstracts, mueblería */
+  --tinta-suave:  #8c8c8c;   /* estados inactivos */
+  --linea:        #e6e4df;   /* filetes finos */
+  --realce-fondo: #f4f2ec;   /* fondo sutil (código, hover de TOC) */
+
+  /* Tipografía */
+  --serif: 'Lora', Georgia, 'Times New Roman', serif;
+  --sans:  ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --mono:  ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+
+  /* Lectura: estas tres son las que más calibraremos */
+  --tam-texto:   1.2rem;     /* tamaño del cuerpo del ensayo */
+  --interlinea:  1.72;       /* line-height del cuerpo */
+  --medida:      40rem;      /* ancho máximo de la columna de lectura (~68 car.) */
+
+  /* Estructura */
+  --alto-barra:  3.25rem;
+  --ancho-toc:   15rem;
+}
+
+/* ---- Base ------------------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--papel);
+  color: var(--tinta);
+  font-family: var(--serif);
+  font-size: var(--tam-texto);
+  line-height: var(--interlinea);
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; }
+
+:focus-visible {
+  outline: 2px solid var(--tinta);
+  outline-offset: 3px;
+  border-radius: 1px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+/* =========================================================================
+   ÍNDICE
+   ========================================================================= */
+.cabecera-indice {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: clamp(3rem, 9vw, 6rem) 1.5rem 0;
+}
+
+.titulo-sitio {
+  font-weight: 600;
+  font-size: clamp(2.1rem, 5vw, 3rem);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.subtitulo-sitio {
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+  color: var(--tinta-tenue);
+  margin: 0.6rem 0 0;
+}
+
+.conmutador {
+  display: flex;
+  gap: 1.25rem;
+  margin-top: 2.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--linea);
+}
+
+.conmutador-boton {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0 0 0.2rem;
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tinta-suave);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+.conmutador-boton:hover { color: var(--tinta); }
+.conmutador-boton[aria-current="true"] {
+  color: var(--tinta);
+  border-bottom-color: var(--tinta);
+}
+
+.indice {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 0 1.5rem 7rem;
+}
+
+.grupo { margin-top: 3.25rem; }
+
+.grupo-titulo {
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+  margin: 0 0 0.25rem;
+}
+
+.entrada {
+  padding: 1.5rem 0;
+  border-bottom: 1px solid var(--linea);
+}
+
+.entrada-titulo {
+  display: inline-block;
+  font-size: 1.4rem;
+  font-weight: 500;
+  line-height: 1.25;
+  text-decoration: none;
+  color: var(--tinta);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 0.18em;
+  transition: text-decoration-color 0.15s ease;
+}
+.entrada-titulo:hover { text-decoration-color: var(--tinta); }
+
+.entrada-meta {
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+  color: var(--tinta-tenue);
+  margin-top: 0.35rem;
+}
+
+.entrada-abstract {
+  margin: 0.55rem 0 0;
+  font-size: 1.02rem;
+  line-height: 1.55;
+  color: #3d3d3d;
+  max-width: 42rem;
+}
+
+/* =========================================================================
+   LECTOR DE ENSAYO
+   ========================================================================= */
+.barra-superior {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  height: var(--alto-barra);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 1.5rem;
+  background: color-mix(in srgb, var(--papel) 88%, transparent);
+  backdrop-filter: saturate(180%) blur(8px);
+  border-bottom: 1px solid var(--linea);
+}
+
+.volver {
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  letter-spacing: 0.01em;
+  color: var(--tinta-tenue);
+  text-decoration: none;
+}
+.volver:hover { color: var(--tinta); }
+
+/* --- Caja de navegación a otros ensayos --- */
+.navegador { position: relative; }
+
+.navegador-boton {
+  appearance: none;
+  background: none;
+  border: 0;
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  color: var(--tinta-tenue);
+  cursor: pointer;
+}
+.navegador-boton:hover:not(:disabled) { color: var(--tinta); }
+.navegador-boton:disabled { color: var(--tinta-suave); cursor: default; }
+
+.caja-navegacion {
+  position: absolute;
+  top: calc(100% + 0.6rem);
+  right: 0;
+  width: min(22rem, 80vw);
+  max-height: 70vh;
+  overflow-y: auto;
+  background: var(--papel);
+  border: 1px solid var(--linea);
+  box-shadow: 0 12px 30px -12px rgba(0, 0, 0, 0.22);
+  padding: 0.5rem;
+}
+.caja-navegacion ul { list-style: none; margin: 0; padding: 0; }
+.caja-navegacion a {
+  display: block;
+  padding: 0.5rem 0.6rem;
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  line-height: 1.35;
+  color: var(--tinta);
+  text-decoration: none;
+}
+.caja-navegacion a:hover { background: var(--realce-fondo); }
+.caja-navegacion a[aria-current="true"] {
+  color: var(--tinta-tenue);
+  font-style: italic;
+}
+
+/* --- Disposición: columna de lectura + TOC a la derecha --- */
+.disposicion {
+  max-width: 62rem;
+  margin: 0 auto;
+  padding: clamp(2.5rem, 6vw, 4.5rem) 1.5rem 7rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--ancho-toc);
+  gap: 3rem;
+  align-items: start;
+}
+
+.ensayo { max-width: var(--medida); min-width: 0; }
+
+/* Encabezado del ensayo (título + datos vienen del manifest) */
+.ensayo-cabecera { margin-bottom: 2.5rem; }
+.ensayo-cabecera h1 {
+  font-weight: 600;
+  font-size: clamp(1.9rem, 4.5vw, 2.6rem);
+  line-height: 1.15;
+  letter-spacing: -0.012em;
+  margin: 0;
+}
+.ensayo-meta {
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+  margin: 0.9rem 0 0;
+}
+
+/* --- Tipografía del cuerpo (HTML generado desde Markdown) --- */
+.ensayo-cuerpo > *:first-child { margin-top: 0; }
+
+.ensayo-cuerpo p {
+  margin: 0 0 1.35em;
+  hyphens: auto;
+}
+
+.ensayo-cuerpo h2 {
+  font-weight: 600;
+  font-size: 1.55rem;
+  line-height: 1.25;
+  letter-spacing: -0.008em;
+  margin: 2.6em 0 0.7em;
+  scroll-margin-top: 4.5rem;
+}
+.ensayo-cuerpo h3 {
+  font-weight: 600;
+  font-size: 1.2rem;
+  line-height: 1.3;
+  margin: 2em 0 0.5em;
+  scroll-margin-top: 4.5rem;
+}
+.ensayo-cuerpo h4 {
+  font-weight: 600;
+  font-size: 1.02rem;
+  font-style: italic;
+  margin: 1.8em 0 0.4em;
+  scroll-margin-top: 4.5rem;
+}
+
+.ensayo-cuerpo a {
+  color: var(--tinta);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.16em;
+  text-decoration-color: var(--tinta-tenue);
+}
+.ensayo-cuerpo a:hover { text-decoration-color: var(--tinta); }
+
+.ensayo-cuerpo strong { font-weight: 700; }
+.ensayo-cuerpo em { font-style: italic; }
+
+.ensayo-cuerpo blockquote {
+  margin: 1.6em 0;
+  padding: 0.1em 0 0.1em 1.4em;
+  border-left: 2px solid var(--tinta);
+  font-style: italic;
+  color: #2e2e2e;
+}
+.ensayo-cuerpo blockquote p:last-child { margin-bottom: 0; }
+
+.ensayo-cuerpo ul, .ensayo-cuerpo ol {
+  margin: 0 0 1.35em;
+  padding-left: 1.4em;
+}
+.ensayo-cuerpo li { margin: 0.3em 0; }
+
+.ensayo-cuerpo hr {
+  border: 0;
+  height: 1px;
+  background: var(--linea);
+  margin: 3em auto;
+  width: 40%;
+}
+
+.ensayo-cuerpo code {
+  font-family: var(--mono);
+  font-size: 0.86em;
+  background: var(--realce-fondo);
+  padding: 0.12em 0.35em;
+  border-radius: 3px;
+}
+.ensayo-cuerpo pre {
+  background: var(--realce-fondo);
+  padding: 1rem 1.1rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin: 0 0 1.5em;
+}
+.ensayo-cuerpo pre code { background: none; padding: 0; font-size: 0.85rem; }
+
+.ensayo-cuerpo img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1.8em auto;
+}
+
+.ensayo-cuerpo figure { margin: 1.8em 0; }
+.ensayo-cuerpo figcaption {
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  color: var(--tinta-tenue);
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+/* --- Tabla de contenido lateral --- */
+.toc {
+  position: sticky;
+  top: calc(var(--alto-barra) + 1.5rem);
+  font-family: var(--sans);
+  align-self: start;
+  max-height: calc(100vh - var(--alto-barra) - 3rem);
+  overflow-y: auto;
+}
+.toc[hidden] { display: none; }
+
+.toc-titulo {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+  margin: 0 0 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--linea);
+}
+
+.toc nav { display: flex; flex-direction: column; }
+
+.toc-enlace {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: var(--tinta-tenue);
+  text-decoration: none;
+  padding: 0.28rem 0 0.28rem 0.75rem;
+  border-left: 2px solid transparent;
+  transition: color 0.12s ease, border-color 0.12s ease;
+}
+.toc-enlace:hover { color: var(--tinta); }
+.toc-sub { padding-left: 1.75rem; font-size: 0.8rem; }
+.toc-enlace[aria-current="true"] {
+  color: var(--tinta);
+  border-left-color: var(--tinta);
+  font-weight: 500;
+}
+
+/* --- Estados (error / vacío) --- */
+.estado {
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  color: var(--tinta-tenue);
+  padding: 2rem 0;
+  max-width: 32rem;
+}
+
+/* =========================================================================
+   RESPONSIVE
+   En pantallas estrechas la TOC lateral se oculta (la lectura es lineal y
+   la "caja de navegación" de la barra sigue disponible). Reincorporarla
+   como bloque plegable es un cambio acotado para más adelante.
+   ========================================================================= */
+@media (max-width: 60rem) {
+  .disposicion {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .toc { display: none; }
+  .ensayo { max-width: var(--medida); margin: 0 auto; }
+}

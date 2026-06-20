@@ -1,0 +1,6 @@
+{
+  "name": "repositorio-ensayos",
+  "private": true,
+  "type": "module",
+  "description": "Sitio estático de ensayos. Sin build: GitHub Pages sirve los archivos tal cual. Este package.json solo permite que Node importe js/logica.js como módulo ES para las pruebas."
+}

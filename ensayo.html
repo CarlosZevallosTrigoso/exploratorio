@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ensayo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap">
+  <link rel="stylesheet" href="css/estilo.css">
+  <!-- Markdown -> HTML. Versión fijada. UMD expone el global `marked`. -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@18.0.5/lib/marked.umd.js"></script>
+</head>
+<body class="pagina-ensayo">
+  <div class="barra-superior">
+    <a class="volver" href="index.html">← Índice</a>
+    <div class="navegador">
+      <button type="button" class="navegador-boton" aria-expanded="false"
+              aria-controls="caja-navegacion">Ensayos ▾</button>
+      <div id="caja-navegacion" class="caja-navegacion" hidden></div>
+    </div>
+  </div>
+
+  <div class="disposicion">
+    <article id="ensayo" class="ensayo"></article>
+    <aside class="toc" aria-label="Contenido del ensayo">
+      <p class="toc-titulo">Contenido</p>
+      <nav id="toc-lista"></nav>
+    </aside>
+  </div>
+
+  <script type="module">
+    import { slugsUnicos, limpiarManifest, formatearFecha }
+      from './js/logica.js';
+
+    const params = new URLSearchParams(location.search);
+    const id = params.get('id');
+    const art = document.getElementById('ensayo');
+    const aside = document.querySelector('.toc');
+    const tocLista = document.getElementById('toc-lista');
+
+    function mostrarError(texto) {
+      art.innerHTML = '';
+      const d = document.createElement('div');
+      d.className = 'estado';
+      d.textContent = texto;
+      art.appendChild(d);
+      aside.hidden = true;
+    }
+
+    function construirNavegador(manifest) {
+      const boton = document.querySelector('.navegador-boton');
+      const caja = document.getElementById('caja-navegacion');
+      if (!manifest.length) { boton.disabled = true; return; }
+
+      const ul = document.createElement('ul');
+      for (const e of manifest) {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = `ensayo.html?id=${encodeURIComponent(e.slug)}`;
+        a.target = '_blank';           // se abre en otra ventana, como pediste
+        a.rel = 'noopener';
+        a.textContent = e.titulo;
+        if (e.slug === id) a.setAttribute('aria-current', 'true');
+        li.appendChild(a);
+        ul.appendChild(li);
+      }
+      caja.appendChild(ul);
+
+      const cerrar = () => { boton.setAttribute('aria-expanded', 'false'); caja.hidden = true; };
+      boton.addEventListener('click', () => {
+        const abierto = boton.getAttribute('aria-expanded') === 'true';
+        boton.setAttribute('aria-expanded', String(!abierto));
+        caja.hidden = abierto;
+      });
+      document.addEventListener('click', (ev) => {
+        if (!caja.hidden && !caja.contains(ev.target) && ev.target !== boton) cerrar();
+      });
+      document.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Escape' && !caja.hidden) { cerrar(); boton.focus(); }
+      });
+    }
+
+    function construirToc(cuerpo) {
+      const enc = [...cuerpo.querySelectorAll('h2, h3')];
+      if (!enc.length) { aside.hidden = true; return; }
+
+      const ids = slugsUnicos(enc.map(h => h.textContent));
+      tocLista.innerHTML = '';
+      enc.forEach((h, i) => {
+        h.id = ids[i];
+        const a = document.createElement('a');
+        a.href = `#${ids[i]}`;
+        a.textContent = h.textContent;
+        a.className = h.tagName === 'H3' ? 'toc-enlace toc-sub' : 'toc-enlace';
+        a.dataset.destino = ids[i];
+        tocLista.appendChild(a);
+      });
+      activarScrollSpy(enc);
+    }
+
+    function activarScrollSpy(encabezados) {
+      const enlaces = new Map(
+        [...tocLista.querySelectorAll('a')].map(a => [a.dataset.destino, a]));
+      const visibles = new Set();
+      const obs = new IntersectionObserver((entradas) => {
+        for (const e of entradas) {
+          if (e.isIntersecting) visibles.add(e.target.id);
+          else visibles.delete(e.target.id);
+        }
+        let activo = null;
+        for (const h of encabezados) { if (visibles.has(h.id)) { activo = h.id; break; } }
+        enlaces.forEach((a, idEnc) =>
+          a.setAttribute('aria-current', String(idEnc === activo)));
+      }, { rootMargin: '-80px 0px -68% 0px', threshold: 0 });
+      encabezados.forEach(h => obs.observe(h));
+    }
+
+    function render(meta, md) {
+      art.innerHTML = '';
+
+      // Encabezado: título y datos vienen del manifest (fuente única).
+      const cab = document.createElement('header');
+      cab.className = 'ensayo-cabecera';
+      const h1 = document.createElement('h1');
+      h1.textContent = meta ? meta.titulo : id;
+      cab.appendChild(h1);
+      if (meta && (meta.fecha || meta.tema)) {
+        const m = document.createElement('p');
+        m.className = 'ensayo-meta';
+        const trozos = [];
+        if (meta.tema)  trozos.push(meta.tema);
+        if (meta.fecha) trozos.push(formatearFecha(meta.fecha));
+        m.textContent = trozos.join(' · ');
+        cab.appendChild(m);
+      }
+      art.appendChild(cab);
+
+      // Cuerpo: Markdown -> HTML. (marked no sanitiza; el contenido es propio.)
+      const cuerpo = document.createElement('div');
+      cuerpo.className = 'ensayo-cuerpo';
+      cuerpo.innerHTML = marked.parse(md);
+      art.appendChild(cuerpo);
+
+      document.title = (meta ? meta.titulo : id) + ' — Ensayos';
+      construirToc(cuerpo);
+    }
+
+    async function init() {
+      if (!id) { mostrarError('No se indicó qué ensayo abrir.'); return; }
+      if (typeof marked === 'undefined') {
+        mostrarError('No se pudo cargar el procesador de Markdown (revisa tu conexión).');
+        return;
+      }
+
+      let manifest = [];
+      try {
+        const rm = await fetch('manifest.json', { cache: 'no-cache' });
+        if (rm.ok) manifest = limpiarManifest(await rm.json());
+      } catch { /* el manifest es opcional para mostrar el cuerpo */ }
+
+      const meta = manifest.find(e => e.slug === id) || null;
+      construirNavegador(manifest);
+
+      let md;
+      try {
+        const r = await fetch(`ensayos/${encodeURIComponent(id)}.md`, { cache: 'no-cache' });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        md = await r.text();
+      } catch (err) {
+        console.error(err);
+        mostrarError('No se encontró este ensayo. Revisa el enlace o vuelve al índice.');
+        return;
+      }
+
+      render(meta, md);
+    }
+
+    init();
+  </script>
+</body>
+</html>
