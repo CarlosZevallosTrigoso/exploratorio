@@ -99,3 +99,29 @@ export function formatearFecha(iso) {
   if (m < 1 || m > 12) return iso;
   return `${d} de ${MESES[m - 1]} de ${a}`;
 }
+
+// Fecha en formato compacto dd.mm.aaaa, como en czt-bosque.
+export function fechaNumerica(iso) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso || '';
+  const [a, m, d] = iso.split('-');
+  return `${d}.${m}.${a}`;
+}
+
+// Cuenta palabras de un texto Markdown, ignorando la sintaxis de formato.
+export function contarPalabras(md) {
+  let t = String(md);
+  t = t.replace(/```[\s\S]*?```/g, ' ');        // bloques de código
+  t = t.replace(/`[^`]*`/g, ' ');               // código en línea
+  t = t.replace(/!\[[^\]]*\]\([^)]*\)/g, ' ');   // imágenes
+  t = t.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1'); // enlaces -> solo el texto
+  t = t.replace(/^#{1,6}\s+/gm, '');            // marcas de encabezado
+  t = t.replace(/^\s*[-+*]\s+/gm, ' ');         // viñetas
+  t = t.replace(/-{3,}/g, ' ');                 // separadores ---
+  t = t.replace(/[*_>#~`]/g, ' ');              // símbolos de énfasis/cita
+  return t.trim().split(/\s+/).filter(w => /[\p{L}\p{N}]/u.test(w)).length;
+}
+
+// Minutos de lectura estimados (~200 palabras/min, mínimo 1).
+export function tiempoLectura(palabras) {
+  return Math.max(1, Math.round(palabras / 200));
+}

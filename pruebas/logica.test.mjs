@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   slug, slugsUnicos, normalizarEnsayo, limpiarManifest,
   ordenarPorFechaDesc, agruparPorAnio, agruparPorTema, formatearFecha,
+  fechaNumerica, contarPalabras, tiempoLectura,
 } from '../js/logica.js';
 
 let n = 0;
@@ -91,6 +92,29 @@ t('formatea ISO a texto en español', () =>
 t('formatearFecha tolera formato inesperado', () => {
   assert.equal(formatearFecha('2026'), '2026');
   assert.equal(formatearFecha(''), '');
+});
+
+// --- fechaNumerica ---
+t('fechaNumerica da dd.mm.aaaa', () =>
+  assert.equal(fechaNumerica('2026-06-15'), '15.06.2026'));
+t('fechaNumerica tolera formato inesperado', () =>
+  assert.equal(fechaNumerica('mañana'), 'mañana'));
+
+// --- contarPalabras ---
+t('contarPalabras ignora la sintaxis markdown', () => {
+  const md = '## Título\n\nUna *frase* con **énfasis** y un [enlace](http://x).\n\n- uno\n- dos';
+  // Título + Una frase con énfasis y un enlace. + uno dos = 10
+  assert.equal(contarPalabras(md), 10);
+});
+t('contarPalabras descarta código y separadores', () => {
+  assert.equal(contarPalabras('```\ncodigo aqui\n```\n\n---\n\ntexto real'), 2);
+});
+
+// --- tiempoLectura ---
+t('tiempoLectura ~200 ppm, mínimo 1', () => {
+  assert.equal(tiempoLectura(0), 1);
+  assert.equal(tiempoLectura(400), 2);
+  assert.equal(tiempoLectura(7662), 38);
 });
 
 console.log(`\n  ${n}/${n} pruebas OK\n`);

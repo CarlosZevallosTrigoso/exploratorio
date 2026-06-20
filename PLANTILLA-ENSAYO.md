@@ -53,13 +53,15 @@ Es una lista `[ ... ]` de objetos. Agrega uno nuevo (cuida las comas entre objet
   "subtitulo": "Notas sobre la duración (campo opcional; quítalo si no aplica)",
   "abstract": "Treinta palabras, más o menos, que resuman la tesis. Es lo que se lee en el índice bajo el título.",
   "fecha": "2026-03-14",
-  "tema": "Fenomenología"
+  "tema": "Fenomenología",
+  "palabras": 1234
 }
 ```
 
 - `slug`: idéntico al nombre del archivo `.md` (sin la extensión).
 - `subtitulo`: **opcional**. Si está, se muestra en cursiva bajo el título del ensayo. Si no lo necesitas, omite la línea.
-- `fecha`: formato `AAAA-MM-DD`. Es lo que usa el conmutador «Por fecha».
+- `palabras`: **opcional**, el número que aparece en el índice. Lo calculo yo al generar la entrada; si lo omites, el índice simplemente no muestra el conteo (el lector siempre lo recalcula).
+- `fecha`: formato `AAAA-MM-DD`. Es lo que usa el conmutador «por fecha».
 - `tema`: el texto exacto agrupa el conmutador «Por tema». Reutiliza el mismo texto
   para que los ensayos caigan juntos (p. ej. siempre `"Estética"`, no a veces `"estetica"`).
 

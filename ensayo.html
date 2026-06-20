@@ -3,35 +3,65 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Ensayo</title>
+  <title>ensayo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap">
   <link rel="stylesheet" href="css/estilo.css">
+  <script>
+    try {
+      var n = parseInt(localStorage.getItem('brillo'), 10) || 0;
+      var P = [['#ffffff','#111111'],['#e8e8e8','#1a1a1a'],['#3a3a3a','#e0e0e0'],['#1e1e1e','#d8d8d8']];
+      var p = P[n] || P[0], s = document.documentElement.style;
+      s.setProperty('--bg', p[0]); s.setProperty('--fg', p[1]);
+    } catch (e) {}
+  </script>
   <!-- Markdown -> HTML. Versión fijada. UMD expone el global `marked`. -->
   <script src="https://cdn.jsdelivr.net/npm/marked@18.0.5/lib/marked.umd.js"></script>
 </head>
-<body class="pagina-ensayo">
-  <div class="barra-superior">
-    <a class="volver" href="index.html">← Índice</a>
-    <div class="navegador">
-      <button type="button" class="navegador-boton" aria-expanded="false"
-              aria-controls="caja-navegacion">Ensayos ▾</button>
-      <div id="caja-navegacion" class="caja-navegacion" hidden></div>
+<body>
+  <div class="progress-bar" id="progress-bar"></div>
+  <div class="shell">
+    <div class="top-menu">
+      <div class="top-menu-row">
+        <button class="opciones-toggle" id="opciones-toggle">opciones ›</button>
+        <nav class="nav-links">
+          <a class="nav-link" href="index.html">← índice</a>
+          <div class="navegador">
+            <button type="button" class="nav-link navegador-boton" aria-expanded="false"
+                    aria-controls="caja-navegacion">ensayos ›</button>
+            <div id="caja-navegacion" class="caja-navegacion" hidden></div>
+          </div>
+        </nav>
+      </div>
+      <div class="opciones-panel" id="opciones-panel">
+        <div class="setting-group">
+          <span class="setting-label">brillo</span>
+          <div class="brillo-dots">
+            <div class="brillo-dot" data-nivel="0" style="background:#ffffff"></div>
+            <div class="brillo-dot" data-nivel="1" style="background:#e8e8e8"></div>
+            <div class="brillo-dot" data-nivel="2" style="background:#3a3a3a"></div>
+            <div class="brillo-dot" data-nivel="3" style="background:#1e1e1e"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="disposicion main">
+      <article id="ensayo" class="ensayo"></article>
+      <aside class="toc" aria-label="Contenido del ensayo">
+        <p class="toc-titulo">contenido</p>
+        <nav id="toc-lista"></nav>
+      </aside>
     </div>
   </div>
 
-  <div class="disposicion">
-    <article id="ensayo" class="ensayo"></article>
-    <aside class="toc" aria-label="Contenido del ensayo">
-      <p class="toc-titulo">Contenido</p>
-      <nav id="toc-lista"></nav>
-    </aside>
-  </div>
-
   <script type="module">
-    import { slugsUnicos, limpiarManifest, formatearFecha }
+    import { slugsUnicos, limpiarManifest, fechaNumerica, contarPalabras, tiempoLectura }
       from './js/logica.js';
+    import { initOpciones } from './js/ui.js';
+
+    initOpciones();
 
     const params = new URLSearchParams(location.search);
     const id = params.get('id');
@@ -58,7 +88,7 @@
         const li = document.createElement('li');
         const a = document.createElement('a');
         a.href = `ensayo.html?id=${encodeURIComponent(e.slug)}`;
-        a.target = '_blank';           // se abre en otra ventana, como pediste
+        a.target = '_blank';            // se abre en otra ventana
         a.rel = 'noopener';
         a.textContent = e.titulo;
         if (e.slug === id) a.setAttribute('aria-current', 'true');
@@ -67,10 +97,15 @@
       }
       caja.appendChild(ul);
 
-      const cerrar = () => { boton.setAttribute('aria-expanded', 'false'); caja.hidden = true; };
+      const cerrar = () => {
+        boton.setAttribute('aria-expanded', 'false');
+        boton.textContent = 'ensayos ›';
+        caja.hidden = true;
+      };
       boton.addEventListener('click', () => {
         const abierto = boton.getAttribute('aria-expanded') === 'true';
         boton.setAttribute('aria-expanded', String(!abierto));
+        boton.textContent = abierto ? 'ensayos ›' : 'ensayos ×';
         caja.hidden = abierto;
       });
       document.addEventListener('click', (ev) => {
@@ -84,7 +119,6 @@
     function construirToc(cuerpo) {
       const enc = [...cuerpo.querySelectorAll('h2, h3')];
       if (!enc.length) { aside.hidden = true; return; }
-
       const ids = slugsUnicos(enc.map(h => h.textContent));
       tocLista.innerHTML = '';
       enc.forEach((h, i) => {
@@ -110,16 +144,24 @@
         }
         let activo = null;
         for (const h of encabezados) { if (visibles.has(h.id)) { activo = h.id; break; } }
-        enlaces.forEach((a, idEnc) =>
-          a.setAttribute('aria-current', String(idEnc === activo)));
-      }, { rootMargin: '-80px 0px -68% 0px', threshold: 0 });
+        enlaces.forEach((a, k) => a.setAttribute('aria-current', String(k === activo)));
+      }, { rootMargin: '0px 0px -70% 0px', threshold: 0 });
       encabezados.forEach(h => obs.observe(h));
+    }
+
+    function initProgreso() {
+      const barra = document.getElementById('progress-bar');
+      const actualizar = () => {
+        const alto = document.documentElement.scrollHeight - window.innerHeight;
+        barra.style.width = (alto > 0 ? (window.scrollY / alto) * 100 : 0) + '%';
+      };
+      window.addEventListener('scroll', actualizar, { passive: true });
+      actualizar();
     }
 
     function render(meta, md) {
       art.innerHTML = '';
 
-      // Encabezado: título y datos vienen del manifest (fuente única).
       const cab = document.createElement('header');
       cab.className = 'ensayo-cabecera';
       const h1 = document.createElement('h1');
@@ -131,15 +173,15 @@
         sub.textContent = meta.subtitulo;
         cab.appendChild(sub);
       }
-      if (meta && (meta.fecha || meta.tema)) {
-        const m = document.createElement('p');
-        m.className = 'ensayo-meta';
-        const trozos = [];
-        if (meta.tema)  trozos.push(meta.tema);
-        if (meta.fecha) trozos.push(formatearFecha(meta.fecha));
-        m.textContent = trozos.join(' · ');
-        cab.appendChild(m);
-      }
+      const palabras = contarPalabras(md);
+      const m = document.createElement('p');
+      m.className = 'ensayo-meta';
+      const trozos = [];
+      if (meta && meta.fecha) trozos.push(fechaNumerica(meta.fecha));
+      trozos.push(`${palabras} palabras`);
+      trozos.push(`~${tiempoLectura(palabras)} min`);
+      m.textContent = trozos.join(' · ');
+      cab.appendChild(m);
       art.appendChild(cab);
 
       // Cuerpo: Markdown -> HTML. (marked no sanitiza; el contenido es propio.)
@@ -148,8 +190,9 @@
       cuerpo.innerHTML = marked.parse(md);
       art.appendChild(cuerpo);
 
-      document.title = (meta ? meta.titulo : id) + ' — Ensayos';
+      document.title = (meta ? meta.titulo : id) + ' — ensayos';
       construirToc(cuerpo);
+      initProgreso();
     }
 
     async function init() {
