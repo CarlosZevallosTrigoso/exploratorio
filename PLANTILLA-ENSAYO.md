@@ -50,6 +50,7 @@ Es una lista `[ ... ]` de objetos. Agrega uno nuevo (cuida las comas entre objet
 {
   "slug": "2026-03-tiempo-vivido",
   "titulo": "El tiempo vivido y la medida del reloj",
+  "subtitulo": "Notas sobre la duración (campo opcional; quítalo si no aplica)",
   "abstract": "Treinta palabras, más o menos, que resuman la tesis. Es lo que se lee en el índice bajo el título.",
   "fecha": "2026-03-14",
   "tema": "Fenomenología"
@@ -57,6 +58,7 @@ Es una lista `[ ... ]` de objetos. Agrega uno nuevo (cuida las comas entre objet
 ```
 
 - `slug`: idéntico al nombre del archivo `.md` (sin la extensión).
+- `subtitulo`: **opcional**. Si está, se muestra en cursiva bajo el título del ensayo. Si no lo necesitas, omite la línea.
 - `fecha`: formato `AAAA-MM-DD`. Es lo que usa el conmutador «Por fecha».
 - `tema`: el texto exacto agrupa el conmutador «Por tema». Reutiliza el mismo texto
   para que los ensayos caigan juntos (p. ej. siempre `"Estética"`, no a veces `"estetica"`).

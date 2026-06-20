@@ -31,6 +31,7 @@ export function normalizarEnsayo(e) {
   return {
     slug: String(e.slug),
     titulo: String(e.titulo),
+    subtitulo: e.subtitulo ? String(e.subtitulo) : '',
     abstract: e.abstract ? String(e.abstract) : '',
     fecha: e.fecha ? String(e.fecha) : '',
     tema: e.tema ? String(e.tema) : 'Sin tema',

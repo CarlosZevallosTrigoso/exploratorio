@@ -125,6 +125,12 @@
       const h1 = document.createElement('h1');
       h1.textContent = meta ? meta.titulo : id;
       cab.appendChild(h1);
+      if (meta && meta.subtitulo) {
+        const sub = document.createElement('p');
+        sub.className = 'ensayo-subtitulo';
+        sub.textContent = meta.subtitulo;
+        cab.appendChild(sub);
+      }
       if (meta && (meta.fecha || meta.tema)) {
         const m = document.createElement('p');
         m.className = 'ensayo-meta';

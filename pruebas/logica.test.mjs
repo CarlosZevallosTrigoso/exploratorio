@@ -31,6 +31,10 @@ t('normalizarEnsayo descarta sin slug o titulo', () => {
 });
 t('normalizarEnsayo rellena tema por defecto', () =>
   assert.equal(normalizarEnsayo({ slug: 'a', titulo: 'A' }).tema, 'Sin tema'));
+t('normalizarEnsayo: subtitulo vacío por defecto, conservado si existe', () => {
+  assert.equal(normalizarEnsayo({ slug: 'a', titulo: 'A' }).subtitulo, '');
+  assert.equal(normalizarEnsayo({ slug: 'a', titulo: 'A', subtitulo: 'Sub' }).subtitulo, 'Sub');
+});
 t('limpiarManifest filtra inválidos', () => {
   const r = limpiarManifest([
     { slug: 'a', titulo: 'A' },

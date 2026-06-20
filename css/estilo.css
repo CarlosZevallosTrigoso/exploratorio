@@ -266,6 +266,13 @@ a { color: inherit; }
   color: var(--tinta-tenue);
   margin: 0.9rem 0 0;
 }
+.ensayo-subtitulo {
+  font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+  font-style: italic;
+  line-height: 1.3;
+  color: #3d3d3d;
+  margin: 0.7rem 0 0;
+}
 
 /* --- Tipografía del cuerpo (HTML generado desde Markdown) --- */
 .ensayo-cuerpo > *:first-child { margin-top: 0; }
