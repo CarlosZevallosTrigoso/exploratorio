@@ -32,6 +32,16 @@
                     aria-controls="caja-navegacion">ensayos ›</button>
             <div id="caja-navegacion" class="caja-navegacion" hidden></div>
           </div>
+          <div class="navegador" id="grupo-descargas" hidden>
+            <button type="button" class="nav-link navegador-boton" id="descargar-boton"
+                    aria-expanded="false" aria-controls="caja-descargas">descargar ›</button>
+            <div id="caja-descargas" class="caja-navegacion" hidden>
+              <ul>
+                <li><a id="descargar-md">· markdown (.md)</a></li>
+                <li><button type="button" id="descargar-pdf" class="caja-accion">· pdf (imprimir)</button></li>
+              </ul>
+            </div>
+          </div>
         </nav>
       </div>
       <div class="opciones-panel" id="opciones-panel">
@@ -149,6 +159,40 @@
       encabezados.forEach(h => obs.observe(h));
     }
 
+    function initDescargas(slug) {
+      const grupo = document.getElementById('grupo-descargas');
+      const boton = document.getElementById('descargar-boton');
+      const caja = document.getElementById('caja-descargas');
+      const aMd = document.getElementById('descargar-md');
+      const bPdf = document.getElementById('descargar-pdf');
+
+      // El .md fuente ya existe en disco; lo servimos tal cual, byte a byte.
+      aMd.href = `ensayos/${encodeURIComponent(slug)}.md`;
+      aMd.download = `${slug}.md`;
+
+      const cerrar = () => {
+        boton.setAttribute('aria-expanded', 'false');
+        boton.textContent = 'descargar ›';
+        caja.hidden = true;
+      };
+      boton.addEventListener('click', () => {
+        const abierto = boton.getAttribute('aria-expanded') === 'true';
+        boton.setAttribute('aria-expanded', String(!abierto));
+        boton.textContent = abierto ? 'descargar ›' : 'descargar ×';
+        caja.hidden = abierto;
+      });
+      document.addEventListener('click', (ev) => {
+        if (!caja.hidden && !caja.contains(ev.target) && ev.target !== boton) cerrar();
+      });
+      document.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Escape' && !caja.hidden) { cerrar(); boton.focus(); }
+      });
+      // PDF = imprimir; el navegador usa document.title como nombre sugerido.
+      bPdf.addEventListener('click', () => { cerrar(); window.print(); });
+
+      grupo.hidden = false;   // solo se revela cuando el ensayo cargó bien
+    }
+
     function initProgreso() {
       const barra = document.getElementById('progress-bar');
       const actualizar = () => {
@@ -193,6 +237,7 @@
       document.title = (meta ? meta.titulo : id) + ' — ensayos';
       construirToc(cuerpo);
       initProgreso();
+      initDescargas(id);
     }
 
     async function init() {
